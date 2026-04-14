@@ -53,14 +53,18 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Start Spring Boot (safe port)
+      - name: Start Spring Boot
         run: |
-          mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081 &
-          sleep 20
+          mvn spring-boot:run > app.log 2>&1 &
+          for i in {1..30}; do
+            nc -z localhost 8080 && echo "Ready" && exit 0
+            sleep 2
+          done
+          echo "App failed to start"
+          cat app.log
+          exit 1
 
       - name: Run API + BDD tests
-        env:
-          BASE_URL: http://localhost:8081
         run: mvn test -Dtest="*ApiTest,*CucumberTestRunner"
 
   ui-tests:
@@ -75,11 +79,17 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          cache: maven
 
-      - name: Start backend (ONLY ONE INSTANCE)
+      - name: Start backend
         run: |
-          mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8082 &
-          sleep 20
+          mvn spring-boot:run > backend.log 2>&1 &
+          for i in {1..30}; do
+            nc -z localhost 8080 && echo "Backend ready" && exit 0
+            sleep 2
+          done
+          cat backend.log
+          exit 1
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -95,8 +105,6 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run UI tests
-        env:
-          BASE_URL: http://localhost:8082
         run: npx playwright test playwright/
 
   allure:

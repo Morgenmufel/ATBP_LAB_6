@@ -10,13 +10,11 @@ public class UserSteps {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private String response;
+    private final String BASE_URL = "http://localhost:8080";
 
     @When("I request users")
-    public void callApi() {
-        response = restTemplate.getForObject(
-                "http://localhost:8080/users",
-                String.class
-        );
+    public String callApi() {
+        return restTemplate.getForObject(BASE_URL + "/users", String.class);
     }
 
     @Then("response contains {string}")
