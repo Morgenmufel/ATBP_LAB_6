@@ -1,17 +1,17 @@
 package renatius.cicddemo.unit;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import renatius.cicddemo.controller.UserController;
 import renatius.cicddemo.service.UserService;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class UserControllerTest {
 
-    UserController controller = new UserController(new UserService());
+    private final UserController controller =
+            new UserController(new UserService());
 
     @Test
     void shouldReturnUsers() {
