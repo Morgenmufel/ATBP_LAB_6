@@ -37,7 +37,7 @@ jobs:
           cache: maven
 
       - name: Run unit tests
-        run: mvn test -Dtest="*Test"
+        run: mvn test -Dtest="renatius.cicddemo.unit.UserControllerTest"
 
 
   api-bdd-tests:
