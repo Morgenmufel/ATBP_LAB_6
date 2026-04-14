@@ -1,6 +1,5 @@
 name: Full CI/CD Pipeline
 
-name: Full CI/CD Pipeline
 
 on:
   [push]
