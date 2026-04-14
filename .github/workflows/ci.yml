@@ -43,8 +43,8 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-api-bdd
-          path: target/surefire-reports/
+            name: unit-test-results
+            path: target/surefire-reports/
 
 
   api-bdd-tests:
@@ -152,7 +152,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-api-bdd
+          name: test-results-ui
           path: target/surefire-reports/
 
 
