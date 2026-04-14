@@ -61,18 +61,30 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Start Spring Boot
-        run: |
-          java -jar target/*.jar > app.log 2>&1 &
-          for i in {1..30}; do
-            nc -z localhost 8080 && echo "Ready" && exit 0
-            sleep 2
-          done
-          echo "App failed to start"
-          cat app.log
-          exit 1
+      - run: |
+      - java -jar target/*.jar > app.log 2>&1 &
+      - echo $! > app.pid
+      - for i in {1..30}; do
+      - if curl -s http://localhost:8080/users > /dev/null 2>&1; then
+      - echo "✅ App started successfully"
+      - exit 0
+      - fi
+      - echo "⏳ Waiting for app to start... ($i/30)"
+      - sleep 2
+      - done
+      - echo "❌ App failed to start. Log:"
+      - cat app.log
+      - exit 1
 
       - name: Run API + BDD tests
-        run: mvn test -Dtest="*ApiTest,*CucumberTestRunner"
+      - run: mvn test -Dtest="*ApiTest,*CucumberTestRunner"
+
+      - name: Stop Spring Boot
+      - if: always()
+      - run: |
+      - if [ -f app.pid ]; then
+      - kill $(cat app.pid) || true
+      - fi
 
 
   ui-tests:
