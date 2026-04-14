@@ -39,6 +39,13 @@ jobs:
       - name: Run unit tests
         run: mvn test -Dtest="renatius.cicddemo.unit.UserControllerTest"
 
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-api-bdd
+          path: target/surefire-reports/
+
 
   api-bdd-tests:
     runs-on: ubuntu-latest
@@ -78,6 +85,13 @@ jobs:
 
       - name: Run API + BDD tests
         run: mvn test -Dtest="*ApiTest,*CucumberTestRunner"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-api-bdd
+          path: target/surefire-reports/
 
       - name: Stop Spring Boot
         if: always()
@@ -134,10 +148,17 @@ jobs:
       - name: Run UI tests
         run: npx playwright test
 
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-api-bdd
+          path: target/surefire-reports/
+
 
   allure:
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-bdd-tests, ui-tests]
+    needs: [ unit-tests, api-bdd-tests, ui-tests ]
     if: always()
 
     steps:
@@ -150,11 +171,19 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Run tests for report generation
-        run: mvn test
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: target/allure-results
+          pattern: test-results-*
+          merge-multiple: true
 
       - name: Generate Allure report
-        run: mvn allure:report
+        run: |
+          # Если нужно, скопируй результаты в правильную директорию
+          mkdir -p target/allure-results
+          cp -r target/allure-results/*/target/surefire-reports/* target/allure-results/ 2>/dev/null || true
+          mvn allure:report
 
       - name: Upload Allure report
         uses: actions/upload-artifact@v4
