@@ -199,8 +199,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build project
+        run: mvn clean package -DskipTests
+
       - name: Build Docker image
         run: docker build -t ci-cd-demo .
+
+      - name: Save Docker image
+        run: docker save ci-cd-demo -o ci-cd-demo.tar
+
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: ci-cd-demo.tar
 
 
   deploy:
@@ -211,8 +230,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      - name: Load Docker image
+        run: docker load -i ci-cd-demo.tar
+
+      - name: Stop old container
+        run: docker stop ci-cd-demo || true && docker rm ci-cd-demo || true
+
       - name: Run container
-        run: docker run -d -p 8081:8080 ci-cd-demo
+        run: docker run -d -p 8081:8080 --name ci-cd-demo ci-cd-demo
+
+      - name: Verify container is running
+        run: |
+          sleep 5
+          curl -s http://localhost:8081/users || echo "⚠️ Container started but endpoint not responding"
+          docker ps | grep ci-cd-demo
 
 
   notify:
